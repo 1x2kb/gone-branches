@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "gone-branches"
+name = "gbranches"
 version = "0.1.0"
