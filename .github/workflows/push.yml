@@ -1,14 +1,16 @@
-name: "Test Suite"
+---
+name: Test Suite
 on:
-  push:
-  pull_request:
-
+  push: null
+  pull_request: null
 jobs:
   build:
     name: cargo build
     strategy:
       matrix:
-        platform: [x86_64-pc-windows-gnu, x86_64-unknown-linux-gnu]
+        platform:
+          - x86_64-pc-windows-gnu
+          - x86_64-unknown-linux-gnu
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -17,23 +19,17 @@ jobs:
         run: cargo install cross
       - name: Build
         run: cross build --release --target=${{ matrix.platform }}
-      - run: if ${{ matrix.platform }} == x86_64-pc-windows-gnu; then
-          export artifact_extension=.exe
-        else
-          export artifact_extension=""
+      - run: if ${{ matrix.platform }} == x86_64-pc-windows-gnu; then export artifact_extension=.exe else export artifact_extension="" fi
       - uses: actions/upload-artifact@v3.1.1
         with:
           name: ${{ matrix.platform }}
           path: ./target/${{ matrix.platform }}/release/gbranches${artifact_extension}
           retention-days: 7
- 
-  # Check formatting with rustfmt
   formatting:
     name: cargo fmt
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      # Ensure rustfmt is installed and setup problem matcher
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           components: rustfmt
