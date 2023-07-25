@@ -4,6 +4,7 @@ on:
   push:
   pull_request:
 
+jobs:
   formatting:
     name: cargo fmt
     runs-on: ubuntu-latest
