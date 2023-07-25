@@ -22,7 +22,7 @@ jobs:
       - name: Set execute permission on script.sh
         run: chmod +x extension.sh
       - name: Running extension.sh
-        run: ./extension.sh
+        run: ./extension.sh ${{ matrix.platform }}
       - uses: actions/upload-artifact@v3.1.1
         with:
           name: ${{ matrix.platform }}
