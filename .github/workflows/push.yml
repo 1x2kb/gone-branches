@@ -1,12 +1,12 @@
 ---
 name: Test Suite
 on:
-  push: null
-  pull_request: null
+  push:
+  pull_request:
   
 jobs:
   release-windows:
-    name: Build Windows
+    name: x86_64 Windows
     runs-on: ubuntu-latest # Don't use cross and just build directly on windows?
     steps:
       - uses: actions/checkout@v3
@@ -22,7 +22,7 @@ jobs:
           retention-days: 7
 
   release-linux:
-    name: Build Windows
+    name: x86_64 Linux
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -34,7 +34,7 @@ jobs:
       - uses: actions/upload-artifact@v3.1.1
         with:
           name: gbranches
-          path: ./target/x86_64-unknown-linux-gnu/release/gbranches.exe
+          path: ./target/x86_64-unknown-linux-gnu/release/gbranches
           retention-days: 7
 
   formatting:
