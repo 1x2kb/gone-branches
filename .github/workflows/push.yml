@@ -17,10 +17,13 @@ jobs:
         run: cargo install cross
       - name: Build
         run: cross build --release --target=${{ matrix.platform }}
+      - run: |
+        if ${{ matrix.platform }} == x86_64-pc-windows-gnu; then
+          export artifact_extension=.exe
       - uses: actions/upload-artifact@v3.1.1
         with:
           name: ${{ matrix.platform }}
-          path: ./target/${{ matrix.platform }}/release/gbranches
+          path: ./target/${{ matrix.platform }}/release/gbranches${{artifact_extension}}
           retention-days: 7
  
   # Check formatting with rustfmt
