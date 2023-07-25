@@ -7,14 +7,12 @@ on:
 jobs:
   release-windows:
     name: x86_64 Windows
-    runs-on: ubuntu-latest # Don't use cross and just build directly on windows?
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - name: Install cross
-        run: cargo install cross
       - name: Build
-        run: cross build --release --target=x86_64-pc-windows-gnu
+        run: cargo build --release
       - uses: actions/upload-artifact@v3.1.1
         with:
           name: gbranches.exe
@@ -27,10 +25,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - name: Install cross
-        run: cargo install cross
       - name: Build
-        run: cross build --release --target=x86_64-unknown-linux-gnu
+        run: cargo build --release
       - uses: actions/upload-artifact@v3.1.1
         with:
           name: gbranches
