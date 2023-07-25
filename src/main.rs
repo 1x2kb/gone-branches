@@ -1,7 +1,7 @@
 use std::{io::stdin, process::Command};
 
 fn main() {
-    match run() {
+    match execute() {
         Ok(_) => println!("Done"),
         Err(e) => {
             println!("Encountered error:");
@@ -10,83 +10,111 @@ fn main() {
     }
 }
 
-// TODO: Refactor... Lots of code here that can be easily chunked up.
-fn run() -> Result<(), String> {
+fn execute() -> Result<Vec<String>, String> {
     println!("Attempting to run git 'fetch origin --prune'");
-    let delete_branches = Command::new("git")
-        .args(["fetch", "origin", "--prune"])
-        .output()
-        .map_err(|e| e.to_string())
-        .and_then(|_| {
-            println!("Successfully ran 'fetch origin --prune'");
-            println!("Attempting to run 'git branch -v'");
-            Command::new("git")
-                .args(["branch", "-v"])
-                .output()
-                .map_err(|e| e.to_string())
-        })
-        .and_then(|output| {
-            println!("Successfully ran 'git branch -v'");
-            println!("Attempting to convert to string");
-            String::from_utf8(output.stdout).map_err(|e| e.to_string())
-        })
-        .map(|lines| {
-            println!("Sucessfully converted to string");
-            println!("Filtering");
-            lines
-                .lines()
-                .filter(|line| line.contains("[gone]"))
-                .filter(|line| !line.contains('*')) // Skip active branch if it is marked as gone.
-                .map(str::trim)
-                .map(str::to_string)
-                .flat_map(|line| {
-                    // git branch -v returns more information than just the branch name and [gone].
-                    // This gets just the branch name or returns None and is filtered out by flat_map
-                    println!("Parsing line: {}", &line);
-                    if let Some(match_location) = line.find(|c: char| c.is_ascii_whitespace()) {
-                        return line.get(0..match_location).map(str::to_string);
-                    }
-
-                    None
-                })
-                .filter(|line| !(line == "main" || line == "master")) // Always skip main and master.
-                .fold(String::new(), |aggregator, line| aggregator + " " + &line)
-                .trim()
-                .to_string()
-        })?;
+    let delete_branches = prune()
+        .and_then(|_| get_branches())
+        .map(crate::parse_gone)?;
 
     if delete_branches.is_empty() {
         println!("No branches marked gone");
-        return Ok(()); // Nothing else to do. Return out.
+        return Ok(Vec::new()); // Nothing else to do. Return out.
     }
 
-    println!("Delete the following branches? Y/N: {}", &delete_branches);
-    let mut user_input = String::new();
-    let _input = stdin().read_line(&mut user_input);
-    let user_input = user_input.trim().to_string();
+    let confirmation = user_confirmation(&delete_branches);
 
-    if user_input.to_uppercase() == "Y" {
+    if confirmation.to_uppercase() == "Y" {
         println!(
             "Attempting to delete branches on user confirmation '{}'",
-            &user_input
+            &confirmation
         );
 
-        delete_branches
-            .split(' ')
-            .map(|branch| {
-                Command::new("git")
-                    .args(["branch", "-D", branch])
-                    .output()
-                    .map_err(|e| e.to_string())
-                    .and_then(|output| String::from_utf8(output.stdout).map_err(|e| e.to_string()))
-            })
-            .collect::<Result<Vec<String>, String>>()?
-            .iter()
-            .for_each(|output| println!("{}", output));
+        return delete_gone_branches(delete_branches);
     } else {
         println!("User did not type Y, not deleting");
-        println!("User input read: '{}'", &user_input);
+        println!("User input read: '{}'", &confirmation);
     }
 
-    Ok(())
+    Ok(Vec::new())
+}
+
+fn prune() -> Result<(), String> {
+    Command::new("git")
+        .args(["fetch", "origin", "--prune"])
+        .output()
+        .map_err(|e| e.to_string())
+        .and_then(|output| {
+            String::from_utf8(output.stdout)
+                .map(|output_str| {
+                    println!("Output of prune: {}", &output_str);
+                    ()
+                })
+                .map_err(|e| e.to_string())
+        })
+}
+
+fn get_branches() -> Result<String, String> {
+    println!("Attempting to run 'git branch -v'");
+    Command::new("git")
+        .args(["branch", "-v"])
+        .output()
+        .map_err(|e| e.to_string())
+        .and_then(|output| {
+            String::from_utf8(output.stdout)
+                .map(|output_str| {
+                    println!("Successfully converted branch output to string");
+                    output_str
+                })
+                .map_err(|e| e.to_string())
+        })
+}
+
+fn parse_gone(branches: String) -> Vec<String> {
+    println!("Sucessfully converted to string");
+    println!("Filtering");
+    branches
+        .to_owned()
+        .lines()
+        .filter(|line| line.contains("[gone]"))
+        .filter(|line| !line.contains('*')) // Skip active branch if it is marked as gone.
+        .map(str::trim)
+        .map(str::to_string)
+        .flat_map(|line| {
+            // git branch -v returns more information than just the branch name and [gone].
+            // This gets just the branch name or returns None and is filtered out by flat_map
+            println!("Parsing line: {}", &line);
+            if let Some(match_location) = line.find(|c: char| c.is_ascii_whitespace()) {
+                return line.get(0..match_location).map(str::to_string);
+            }
+
+            None
+        })
+        .filter(|line| !(line == "main" || line == "master")) // Always skip main and master.
+        .collect()
+}
+
+fn user_confirmation(delete_branches: &Vec<String>) -> String {
+    println!("Delete the following branches? Y/N: {:#?}", delete_branches);
+    let mut user_input = String::new();
+    let _input = stdin().read_line(&mut user_input);
+    user_input.trim().to_string()
+}
+
+fn delete_gone_branches(delete_branches: Vec<String>) -> Result<Vec<String>, String> {
+    let delete_output = delete_branches
+        .into_iter()
+        .map(|branch| {
+            Command::new("git")
+                .args(["branch", "-D", &branch])
+                .output()
+                .map_err(|e| e.to_string())
+                .and_then(|output| String::from_utf8(output.stdout).map_err(|e| e.to_string()))
+        })
+        .collect::<Result<Vec<String>, String>>()?;
+
+    delete_output
+        .iter()
+        .for_each(|output| println!("{}", output));
+
+    Ok(delete_output)
 }
