@@ -16,7 +16,7 @@ jobs:
       - uses: actions/upload-artifact@v3.1.1
         with:
           name: gbranches.exe
-          path: ./target/x86_64-pc-windows-gnu/release/gbranches.exe
+          path: ./target/release/gbranches.exe
           retention-days: 7
 
   release-linux:
@@ -30,7 +30,7 @@ jobs:
       - uses: actions/upload-artifact@v3.1.1
         with:
           name: gbranches
-          path: ./target/x86_64-unknown-linux-gnu/release/gbranches
+          path: ./target/release/gbranches
           retention-days: 7
 
   formatting:
