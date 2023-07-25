@@ -17,6 +17,11 @@ jobs:
         run: cargo install cross
       - name: Build
         run: cross build --release --target=${{ matrix.platform }}
+      - uses: actions/upload-artifact@v3.1.1
+        with:
+          name: ${{ matrix.platform }}
+          path: ./target/${{ matrix.platform }}/release/gbranches
+          retention-days: 7
  
   # Check formatting with rustfmt
   formatting:
