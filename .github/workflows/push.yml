@@ -3,35 +3,6 @@ name: Test Suite
 on:
   push:
   pull_request:
-  
-jobs:
-  release-windows:
-    name: x86_64 Windows
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - name: Build
-        run: cargo build --release
-      - uses: actions/upload-artifact@v3.1.1
-        with:
-          name: gbranches.exe
-          path: ./target/release/gbranches.exe
-          retention-days: 7
-
-  release-linux:
-    name: x86_64 Linux
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - name: Build
-        run: cargo build --release
-      - uses: actions/upload-artifact@v3.1.1
-        with:
-          name: gbranches
-          path: ./target/release/gbranches
-          retention-days: 7
 
   formatting:
     name: cargo fmt
