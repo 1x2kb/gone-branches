@@ -22,7 +22,7 @@ jobs:
       - uses: actions/upload-artifact@v3.1.1
         with:
           name: ${{ matrix.platform }}
-          path: ./target/${{ matrix.platform }}/release/gbranches${{artifact_extension}}
+          path: ./target/${{ matrix.platform }}/release/gbranches${artifact_extension}
           retention-days: 7
  
   # Check formatting with rustfmt
