@@ -1,4 +1,7 @@
-use std::{io::stdin, process::Command};
+use std::{
+    io::{stdin, stdout, Write},
+    process::Command,
+};
 
 fn main() {
     match execute() {
@@ -32,7 +35,6 @@ fn execute() -> Result<Vec<String>, String> {
         return delete_gone_branches(delete_branches);
     } else {
         println!("User did not type Y, not deleting");
-        println!("User input read: '{}'", &confirmation);
     }
 
     Ok(Vec::new())
@@ -79,12 +81,16 @@ fn parse_gone(branches: String) -> Vec<String> {
         .filter(|line| !line.contains('*')) // Skip active branch if it is marked as gone.
         .map(str::trim)
         .map(str::to_string)
-        .flat_map(|line| {
+        .enumerate()
+        .flat_map(|(i, line)| {
             // git branch -v returns more information than just the branch name and [gone].
             // This gets just the branch name or returns None and is filtered out by flat_map
-            println!("Parsing line: {}", &line);
+            println!("Parsing line {}: {}", i + 1, &line);
             if let Some(match_location) = line.find(|c: char| c.is_ascii_whitespace()) {
-                return line.get(0..match_location).map(str::to_string);
+                return line
+                    .get(0..match_location)
+                    .map(str::trim)
+                    .map(str::to_string);
             }
 
             None
@@ -94,9 +100,21 @@ fn parse_gone(branches: String) -> Vec<String> {
 }
 
 fn user_confirmation(delete_branches: &Vec<String>) -> String {
-    println!("Delete the following branches? Y/N: {:#?}", delete_branches);
+    println!("Delete the following branches?");
+
+    delete_branches.iter().enumerate().for_each(|(i, branch)| {
+        println!(" {}\t{}", i + 1, branch);
+    });
+
+    print!("Y/N: ");
+    let _ = stdout().flush();
+
     let mut user_input = String::new();
     let _input = stdin().read_line(&mut user_input);
+    user_input = user_input.trim().to_string();
+
+    println!("User input read: '{}'", &user_input);
+
     user_input.trim().to_string()
 }
 
