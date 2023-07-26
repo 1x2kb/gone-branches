@@ -72,7 +72,6 @@ fn get_branches() -> Result<String, String> {
 }
 
 fn parse_gone(branches: String) -> Vec<String> {
-    println!("Sucessfully converted to string");
     println!("Filtering");
     branches
         .to_owned()
