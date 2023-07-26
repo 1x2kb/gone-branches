@@ -49,7 +49,6 @@ fn prune() -> Result<(), String> {
             String::from_utf8(output.stdout)
                 .map(|output_str| {
                     println!("Output of prune: {}", &output_str);
-                    ()
                 })
                 .map_err(|e| e.to_string())
         })
