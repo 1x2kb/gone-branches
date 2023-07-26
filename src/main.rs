@@ -1,16 +1,47 @@
 use std::{
+    env, fs,
     io::{stdin, stdout, Write},
+    path::PathBuf,
     process::Command,
 };
 
 fn main() {
-    match execute() {
-        Ok(_) => println!("Done"),
-        Err(e) => {
-            println!("Encountered error:");
-            println!("{:#?}", e);
+    match env::current_dir()
+        .map_err(|e| e.to_string())
+        .map(crate::check_dir_is_git)
+    {
+        Ok(is_git) => {
+            // Not git. Cannot continue.
+            if !is_git {
+                println!("Current branch is not a git repository");
+                println!("Done");
+                return ();
+            };
+
+            // Do program work
+            match execute() {
+                Ok(_) => println!("Done"),
+                Err(e) => {
+                    println!("Encountered error:");
+                    println!("{:#?}", e);
+                }
+            }
         }
-    }
+        Err(e) => {
+            println!("Error occured while checking the current directory has .git directory");
+            println!("{:#?}", e)
+        }
+    };
+}
+
+fn check_dir_is_git(current_path: PathBuf) -> bool {
+    fs::read_dir(current_path)
+        .map(|dir| {
+            dir.flatten()
+                .map(|dir_entry| dir_entry.file_name())
+                .any(|file_name| file_name.eq_ignore_ascii_case(".git"))
+        })
+        .unwrap_or(false)
 }
 
 fn execute() -> Result<Vec<String>, String> {
@@ -73,7 +104,6 @@ fn get_branches() -> Result<String, String> {
 fn parse_gone(branches: String) -> Vec<String> {
     println!("Filtering");
     branches
-        .to_owned()
         .lines()
         .filter(|line| line.contains("[gone]"))
         .filter(|line| !line.contains('*')) // Skip active branch if it is marked as gone.
@@ -97,7 +127,7 @@ fn parse_gone(branches: String) -> Vec<String> {
         .collect()
 }
 
-fn user_confirmation(delete_branches: &Vec<String>) -> String {
+fn user_confirmation(delete_branches: &[String]) -> String {
     println!("Delete the following branches?");
 
     delete_branches.iter().enumerate().for_each(|(i, branch)| {
