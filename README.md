@@ -1,19 +1,18 @@
 # gone-branches
 
+
+# What Is This?
+This is a small code base written in Rust to delete the local branches that have also been removed on the remote. It achieves this by running a few git commands.
+
+`git fetch origin --prune` updates local to the current state in the remote.
+`git branch -v` Prints out information regarding the git branches on the local. This includes important information such as the branch name and hash. Additionally, it includes a label '[gone]'.
+Each branch returned by the git branch command is filtered based on that gone label. Those branches get passed to the final git command for deletion.
+`git branch -D ...`
+
 # Installing
 `cargo install --path=.`
 This will use cargo to install the crate locally on your machine. The crate name is `gbranches`.
 
-# Executing
-`git fetch origin --prune && git branch -v | gbranches | xargs git branch -D`
-
-`git fetch origin --prune`
-This will update the local state to that of the remote. Removing any branches that no longer exist on the remote. However, pruning does not remove local branches so you can still freely `git checkout` on any pruned branch that also already exists on your local machine.
-
-`git branch -v` prints verbose information about branches on the local machine. The part the program is interested in, is the [gone] part of that output which is present when the remote branch of a local branch is deleted.
-
-`gbranches` this repositories code. Parses the output from the `git branch -v` command and prints out the gone branches. Filtering out any extra text excluding the branch name.
-
-`xargs git branch -D` finally pass the list of branches that are gone to the git delete command.
-
-**Note:** there is no confirmation of deletion and this will immediately delete the branches. Use with caution.
+# Usage
+Once installed this can be run simply in the terminal using the crate name. In this case `gbranches`.
+This will automatically execute against the current directory.
