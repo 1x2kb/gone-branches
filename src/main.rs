@@ -9,27 +9,17 @@ fn main() {
     match env::current_dir()
         .map_err(|e| e.to_string())
         .map(crate::check_dir_is_git)
-    {
-        Ok(is_git) => {
-            // Not git. Cannot continue.
-            if !is_git {
-                println!("Current branch is not a git repository");
-                println!("Done");
-                return ();
-            };
-
-            // Do program work
-            match execute() {
-                Ok(_) => println!("Done"),
-                Err(e) => {
-                    println!("Encountered error:");
-                    println!("{:#?}", e);
-                }
-            }
-        }
-        Err(e) => {
+        .map_err(|e| {
             println!("Error occured while checking the current directory has .git directory");
-            println!("{:#?}", e)
+            println!("{:#?}", e);
+            return e.to_string();
+        })
+        .map(crate::execute)
+    {
+        Ok(_) => println!("Done"),
+        Err(e) => {
+            println!("Encountered error:");
+            println!("{:#?}", e);
         }
     };
 }
@@ -44,8 +34,13 @@ fn check_dir_is_git(current_path: PathBuf) -> bool {
         .unwrap_or(false)
 }
 
-fn execute() -> Result<Vec<String>, String> {
-    println!("Attempting to run git 'fetch origin --prune'");
+fn execute(is_git: bool) -> Result<Vec<String>, String> {
+    if !is_git {
+        println!("Current branch is not a git repository");
+        println!("Done");
+        return Ok(Default::default());
+    }
+
     let delete_branches = prune()
         .and_then(|_| get_branches())
         .map(crate::parse_gone)?;
@@ -72,6 +67,7 @@ fn execute() -> Result<Vec<String>, String> {
 }
 
 fn prune() -> Result<(), String> {
+    println!("Attempting to run git 'fetch origin --prune'");
     Command::new("git")
         .args(["fetch", "origin", "--prune"])
         .output()
