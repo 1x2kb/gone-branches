@@ -25,6 +25,7 @@ fn main() {
 }
 
 fn check_dir_is_git(current_path: PathBuf) -> bool {
+    println!("Checking if current directory has a .git directory");
     fs::read_dir(current_path)
         .map(|dir| {
             dir.flatten()
@@ -151,12 +152,14 @@ fn delete_gone_branches(delete_branches: Vec<String>) -> Result<Vec<String>, Str
                 .output()
                 .map_err(|e| e.to_string())
                 .and_then(|output| String::from_utf8(output.stdout).map_err(|e| e.to_string()))
+                .map(|s| s.as_str().trim().to_string())
         })
         .collect::<Result<Vec<String>, String>>()?;
 
     delete_output
         .iter()
-        .for_each(|output| println!("{}", output));
+        .enumerate()
+        .for_each(|(i, output)| println!(" {}\t{}", i, output));
 
     Ok(delete_output)
 }
