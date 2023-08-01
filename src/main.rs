@@ -159,7 +159,7 @@ fn delete_gone_branches(delete_branches: Vec<String>) -> Result<Vec<String>, Str
     delete_output
         .iter()
         .enumerate()
-        .for_each(|(i, output)| println!(" {}\t{}", i, output));
+        .for_each(|(i, output)| println!(" {}\t{}", i + 1, output));
 
     Ok(delete_output)
 }
