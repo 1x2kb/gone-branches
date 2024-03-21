@@ -1,12 +1,12 @@
 [package]
 name = "gbranches"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2021"
 
 [profile.release]
-lto = true          # Enable link-time optimization
-codegen-units = 1   # Reduce number of codegen units to increase optimizations
-strip = true        # Strip symbols from binary*
+lto = true        # Enable link-time optimization
+codegen-units = 1 # Reduce number of codegen units to increase optimizations
+strip = true      # Strip symbols from binary*
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
