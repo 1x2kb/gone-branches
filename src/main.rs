@@ -105,7 +105,10 @@ fn parse_gone(branches: String) -> Vec<String> {
     branches
         .lines()
         .filter(|line| line.contains("[gone]"))
-        .filter(|line| !line.contains('*')) // Skip active branch if it is marked as gone.
+        .filter(|line| {
+            println!("Current branch is a [gone] branch. Can't delete");
+            !line.contains('*')
+        }) // Skip active branch if it is marked as gone.
         .map(str::trim)
         .map(str::to_string)
         .enumerate()
