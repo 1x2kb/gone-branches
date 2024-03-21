@@ -6,14 +6,16 @@ use std::{
 };
 
 fn main() {
+    let print_error = |e: String| {
+        println!("Error occured while checking the current directory has .git directory");
+        println!("{:#?}", e);
+        e
+    };
+
     match env::current_dir()
         .map_err(|e| e.to_string())
         .map(crate::check_dir_is_git)
-        .map_err(|e| {
-            println!("Error occured while checking the current directory has .git directory");
-            println!("{:#?}", e);
-            return e.to_string();
-        })
+        .map_err(print_error)
         .map(crate::execute)
     {
         Ok(_) => println!("Done"),
